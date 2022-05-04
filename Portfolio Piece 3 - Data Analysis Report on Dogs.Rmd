@@ -1,0 +1,161 @@
+---
+title: "Portfolio 3"
+author: "Cassandra Richardson"
+date: "5/4/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+dogs <- read.csv(here::here("C:/Users/cassr/GitHub/project3/data/AKC_Breed_Info.csv"))
+
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+```
+
+
+# **Cassandra Richardson's Portfolio Piece #3 - Data Analysis Report on Dogs**
+
+
+# Step 1: Finding a dataset.
+
+### The dataset I will be using for this project is "AKC_Breed_Info." This data came from data.world, was published by "len fishman" and the link to the data is: https://data.world/len/dog-canine-breed-size-akc 
+
+### Dataset description: "This dataset include breed size data for dogs from the American Kennel Club (AKC)."
+
+### For this data analysis project, I will be exploring the relationships between average height and weight of various dog breeds. 
+
+
+# Step 2: Before we begin any analyses, let's examine what this dataset includes:
+
+```{r exploring dogs}
+View(dogs)
+
+summary(dogs)
+```
+
+### The "view()" function opens the full dataset file in a new tab, so we can visually examine what the data looks like. 
+
+### The "summary()" function gives us the min, max, 1st quartile, mean, and 3rd quartile for all quantitative variables. However, it looks like all of these variables are "character" - we will need to change this in our data cleaning. 
+
+
+# Step 3: Let's explore some more characteristics about the data:
+
+```{r data characteristics}
+glimpse(dogs)
+head(dogs)
+names(dogs)
+missing <- !complete.cases(dogs)
+dogs[missing]
+```
+
+### - glimpse() shows us an overview of the whole dataset. We see that there are 150 rows and 5 columns.
+### - head() gives us the first 6 rows of data
+### - names() tells us all of the variable names: "Breed" "height_low_inches" "height_high_inches" "weight_low_lbs" "weight_high_lbs"
+### - missing <- !complete.cases() creates an object/tibble called "missing" with any missing observations across the entire dataset
+### - dogs[missing] shows us that the "missing" tibble has 0 columns. This means that there was no missing data in this dataset, which makes it easier to work with! However, when I looked at the data through the "View()" function, I noticed there is at least one breed with values of "not found" which will need to be removed. 
+
+# Step 4: Before we begin our analyses, let's clean the data! 
+
+### First, I want to remove the values of "not found":
+
+```{r removing}
+dogs2 <- subset(dogs, height_low_inches != "not found")
+```
+
+### Perfect! Now we have 149 observations instead of 150, which means that the breed without height/weight information has been removed. 
+
+### Now, I want to combine the low and high values for weight and height to create "height_median_inches" and "weight_median_lbs"
+
+```{r medians}
+dogs_clean <- dogs2 |>
+  group_by(Breed) |>
+  mutate(height_median_inches = )
+
+```
+
+
+# Step 6: Run descriptive statistics  
+
+```{r mean rating}
+climbing_stars <- climbing_recoded |>
+  group_by(Vermin)|>
+  summarize(
+    mean = mean(stars),
+    sd = sd(stars),
+    min = min(stars),
+    max = max(stars)
+  )
+
+print(climbing_stars)
+```
+
+
+# Step 7: Let's visualize our data using a bar graph. 
+
+```{r bar graph}
+dogs2 |>
+  filter(dogs2$weight_high_lbs >= "100") |>
+ggplot(mapping = aes(x = height_high_inches, y = weight_high_lbs)) +
+  geom_col()
+```
+
+
+# Step 8: Now let's visualize our data using a scatterplot.
+
+```{r scatterplot}
+dogs2 |>
+  filter(dogs2$weight_high_lbs >= "100") |>
+ggplot(mapping = aes(x = height_high_inches, y = weight_high_lbs)) +
+  geom_jitter(height = .5, width = .5) 
+```
+
+# Step 9: Let's perform the Chi-square test of independence to see if there is a relationship between star rating and route difficulty:
+
+```{r correlation}
+chi_square <- chisq.test(dogs2$height_high_inches, dogs2$weight_high_lbs)
+
+chi_square
+```
+
+### Our Chi-square test was signficant at *p* < .001! *X^2* = 1754.2. This means that there is a correlation between a dog's height and weight, regardless of breed, such that dogs that are taller also tend to weigh more. Of course, this intuitively makes sense.  
+
+#### *Note for Dr. Wiernik: For this correlation test, I chose to use the Chi-square test because height and weight are currently categorical variables. Although I am not sure if this is the correct test, I wanted to gain practice in running correlations in R.*
+
+
+# Step 10: Let's conduct a one-way Analysis of Variance (ANOVA) test to see if the is a statistically significant difference in the average star rating between the different difficulties of routes.  
+
+```{r anova}
+anova <- aov(weight_high_lbs ~ height_high_inches, data = dogs2)
+
+anova_output <- summary(anova)
+
+print(anova_output)
+```
+
+### I conducted a one-way ANOVA with route difficultly (NA, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9) as the between-subjects factor. There was sufficient evidence to conclude that route difficulty had an effect on the star rating of the route, *F* (10, 796) = 33.64, *p* < .001. 
+
+#### *Note for Dr. Wiernik: The dataset does not clarify how the scores were measured, so I am not sure if this is between-subjects or within-subjects. For the sake of practice, I chose to interpret the data as between-subjects.*
+
+
+# Step 11: Since there are more than two levels of the IV (route difficulty), we need to run post-hoc tests to see which diets are significantly different from each other. 
+
+```{r post hoc}
+TukeyHSD(anova)
+```
+
+### Post hoc tests using a Tukey's HSD adjustment indicated that V0 routes (beginner routes) (*M* = 3.52, *SD* = 0.53) had signficantly lower star ratings than almost all other routes: V2 (*M* = 3.80, *SD* = 0.50), V3 (*M* = 3.97, *SD* = 0.43), V4 (*M* = 4.21, *SD* = 0.46), V5 (*M* = 4.15, *SD* = 0.47), V6 (*M* = 4.32, *SD* = 0.42), V7 (*M* = 4.33, *SD* = 0.39), V8 (*M* = 4.54, *SD* = 0.43), and V9 (*M* = 4.85, *SD* = 0.21). There was no signficant difference in route star rating between V0 and V1 (*M* = 3.55, *SD* = 0.51). V1 routes had signficantly lower star ratings than V2, V3, V4, V5, V6, V7, V8, and V9. V2 routes had signficantly lower star ratings than V4-V8. V3 routes had signficantly lower star ratings than V4, V6, V7, and V8. All other comparions were not signficantly different. 
+
+
+# **Interpretation of the Findings**
+
+### Based on our analyses, there is a signficant relationship between boulder route difficulty and star rating such that more difficult routes have higher star ratings. This relationship is especially prevalent among the beginner-intermediate routes (V0, V1, V2, and V3), with less differences in star ratings at the most difficult levels of routes. 
+
+### Unfortunately, information about the data is limited, preventing the ability to make clearer interpretations.Primarily, the method of data collection and information about the measures was vague. I am assuming that star rating reflects how much people enjoyed the route for the sake of analyses. 
+
+### If my understanding of the data is correct, then we can infer that people tend to enjoy more difficult routes. Future studies can examine if this relationship still exists when controlling for skill level (i.e., do people still enjoy advanced routes if they are a beginner?). Future studies can also examine what aspects of the route people enjoyed (i.e., location, rock type, hold type, etc.) to aid in developing more enjoyable indoor climbing routes. 
+
+
+
