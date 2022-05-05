@@ -111,7 +111,7 @@ drugs_cleaner <- subset(drugs_clean, select=c(age, n, alcohol.use, alcohol.frequ
 # Step 6: Now let's visualize our data using scatterplots.
 
 ```{r alcohol scatterplot}
-ggplot(drugs2) +
+ggplot(drugs_cleaner) +
   aes(x = alcohol.use,
       y = alcohol.frequency,
       fill = age, 
@@ -129,7 +129,7 @@ ggplot(drugs2) +
 ```
 
 ```{r marijuana scatterplot}
-ggplot(drugs2) +
+ggplot(drugs_cleaner) +
   aes(x = marijuana.use,
       y = marijuana.frequency,
       fill = age, 
@@ -147,7 +147,7 @@ ggplot(drugs2) +
 ```
 
 ```{r hallucinogen scatterplot}
-ggplot(drugs2) +
+ggplot(drugs_cleaner) +
   aes(x = hallucinogen.use,
       y = hallucinogen.frequency,
       fill = age, 
@@ -169,42 +169,93 @@ ggplot(drugs2) +
 # Step 7: Let's perform the Chi-square test of independence to see if there are the relationships between drug use and age, and drug frequency and age, per my hypotheses:
 
 ```{r alcohol use and age correlation}
-alc_use_chisq <- chisq.test(drugs_clean$alcohol.use, drugs_clean$age)
+alc_use_chisq <- chisq.test(drugs_cleaner$alcohol.use, drugs_cleaner$age)
 
 alc_use_chisq
 ```
 
 ```{r alcohol frequency and age correlation}
-alc_freq_chisq <- chisq.test(drugs_clean$alcohol.frequency, drugs_clean$age)
+alc_freq_chisq <- chisq.test(drugs_cleaner$alcohol.frequency, drugs_cleaner$age)
 
 alc_freq_chisq
 ```
 
 ```{r marijuana use and age correlation}
-alc_freq_chisq <- chisq.test(drugs_clean$marijuana.use, drugs_clean$age)
+marij_use_chisq <- chisq.test(drugs_cleaner$marijuana.use, drugs_cleaner$age)
 
-alc_freq_chisq
+marij_use_chisq
 ```
 
 ```{r marijuana frequency and age correlation}
-alc_freq_chisq <- chisq.test(drugs_clean$marijuana.frequency, drugs_clean$age)
+marij_freq_chisq <- chisq.test(drugs_cleaner$marijuana.frequency, drugs_cleaner$age)
 
-alc_freq_chisq
+marij_freq_chisq
 ```
 
 ```{r hallucinogen use and age correlation}
-alc_freq_chisq <- chisq.test(drugs_clean$hallucinogen.use, drugs_clean$age)
+hallu_use_chisq <- chisq.test(drugs_cleaner$hallucinogen.use, drugs_cleaner$age)
 
-alc_freq_chisq
+hallu_use_chisq
 ```
 
 ```{r hallucinogen frequency and age correlation}
-alc_freq_chisq <- chisq.test(drugs_clean$hallucinogen.frequency, drugs_clean$age)
+hallu_freq_chisq <- chisq.test(drugs_cleaner$hallucinogen.frequency, drugs_cleaner$age)
 
-alc_freq_chisq
+hallu_freq_chisq
 ```
 
-### Unfortunately, none of our chi-squares tests were signficant. This may be due to the way the age groups were coded, or an error in the test I used. Since we are dealing with one categorical variable (age) and one numeric or continuous variable (drug use OR drug frequency), we could attempt to run an analysis of variance test. 
+### Unfortunately, none of our chi-squares tests were signficant. This may be due to the way the age groups were coded, or an error in the test I used.
+
+# Step 8: To explore if the lack of significance was due to the coding of age groups, or if the relationship only exists among those 12-21 years old, let's filter the data to that age range and re-run our tests. 
+
+```{r subset to only those under 21}
+drugs_young <- subset(drugs_cleaner, age <= "21")
+```
+
+```{r alcohol use and young age correlation}
+alc_use_chisq_y <- chisq.test(drugs_young$alcohol.use, drugs_young$age)
+
+alc_use_chisq_y
+```
+
+```{r alcohol frequency and age correlation}
+alc_freq_chisq_y <- chisq.test(drugs_young$alcohol.frequency, drugs_young$age)
+
+alc_freq_chisq_y
+```
+
+```{r marijuana use and age correlation}
+marij_use_chisq_y <- chisq.test(drugs_young$marijuana.use, drugs_young$age)
+
+marij_use_chisq_y
+```
+
+```{r marijuana frequency and age correlation}
+marij_freq_chisq <- chisq.test(drugs_cleaner$marijuana.frequency, drugs_cleaner$age)
+
+marij_freq_chisq
+```
+
+```{r hallucinogen use and age correlation}
+hallu_use_chisq <- chisq.test(drugs_cleaner$hallucinogen.use, drugs_cleaner$age)
+
+hallu_use_chisq
+```
+
+```{r hallucinogen frequency and age correlation}
+hallu_freq_chisq <- chisq.test(drugs_cleaner$hallucinogen.frequency, drugs_cleaner$age)
+
+hallu_freq_chisq
+```
+
+
+
+
+
+
+
+
+
 
 ```{r alcohol use by age anova}
 alc_use_anova <- aov(alcohol.use ~ age, data = drugs_clean)
