@@ -95,12 +95,20 @@ drugs_clean$meth.frequency <- as.numeric(drugs_clean$meth.frequency)
 sapply(drugs_clean, class)
 ```
 
+### For the sake of having a smaller, more targeted dataset, let's subset "drugs_clean" to only include our variables of interest:
+
+```{r cleaning more}
+drugs_cleaner <- subset(drugs_clean, select=c(age, n, alcohol.use, alcohol.frequency, marijuana.use, marijuana.frequency, hallucinogen.use, hallucinogen.frequency))
+```
+
 # Data cleaning is complete! To clean the data, I did the following steps:
 1. Removed missing values
 2. Converted character variables to numeric variables
+3. Created a subset of the variables we will be using
 
 
-# Step 8: Now let's visualize our data using scatterplots.
+
+# Step 6: Now let's visualize our data using scatterplots.
 
 ```{r alcohol scatterplot}
 ggplot(drugs2) +
@@ -156,12 +164,70 @@ ggplot(drugs2) +
                   max.overlaps = Inf)
 ```
 
-# Step 9: Let's perform the Chi-square test of independence to see if there is a relationship between star rating and route difficulty:
 
-```{r correlation}
-chi_square <- chisq.test(dogs2$height_high_inches, dogs2$weight_high_lbs)
 
-chi_square
+# Step 7: Let's perform the Chi-square test of independence to see if there are the relationships between drug use and age, and drug frequency and age, per my hypotheses:
+
+```{r alcohol use and age correlation}
+alc_use_chisq <- chisq.test(drugs_clean$alcohol.use, drugs_clean$age)
+
+alc_use_chisq
+```
+
+```{r alcohol frequency and age correlation}
+alc_freq_chisq <- chisq.test(drugs_clean$alcohol.frequency, drugs_clean$age)
+
+alc_freq_chisq
+```
+
+```{r marijuana use and age correlation}
+alc_freq_chisq <- chisq.test(drugs_clean$marijuana.use, drugs_clean$age)
+
+alc_freq_chisq
+```
+
+```{r marijuana frequency and age correlation}
+alc_freq_chisq <- chisq.test(drugs_clean$marijuana.frequency, drugs_clean$age)
+
+alc_freq_chisq
+```
+
+```{r hallucinogen use and age correlation}
+alc_freq_chisq <- chisq.test(drugs_clean$hallucinogen.use, drugs_clean$age)
+
+alc_freq_chisq
+```
+
+```{r hallucinogen frequency and age correlation}
+alc_freq_chisq <- chisq.test(drugs_clean$hallucinogen.frequency, drugs_clean$age)
+
+alc_freq_chisq
+```
+
+### Unfortunately, none of our chi-squares tests were signficant. This may be due to the way the age groups were coded, or an error in the test I used. Since we are dealing with one categorical variable (age) and one numeric or continuous variable (drug use OR drug frequency), we could attempt to run an analysis of variance test. 
+
+```{r alcohol use by age anova}
+alc_use_anova <- aov(alcohol.use ~ age, data = drugs_clean)
+
+anova_output <- summary(alc_use_anova)
+
+print(anova_output)
+```
+
+```{r alcohol use by age anova}
+marij_use_anova <- oneway.test(age ~ marijuana.use, data = drugs_clean)
+
+anova_output <- summary(marij_use_anova)
+
+print(anova_output)
+```
+
+### This test was not signficant (*p* > .05). There is not a significant correlation between alcohol use and the age groups in this sample. 
+
+```{r alcohol frquency and age correlation}
+alc_use_chisq <- chisq.test(drugs_clean$alcohol.frequency, drugs_clean$age)
+
+alc_use_chisq
 ```
 
 ### Our Chi-square test was signficant at *p* < .001! *X^2* = 1754.2. This means that there is a correlation between a dog's height and weight, regardless of breed, such that dogs that are taller also tend to weigh more. Of course, this intuitively makes sense.  
