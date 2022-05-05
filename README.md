@@ -1,6 +1,6 @@
-# Portfolio Piece 3 - Data Analysis Report on Dogs' Height and Weight
+# Portfolio Piece 3 - Data Analysis Report on Drug Use by Age
 
-Hello! This is the repository for my third portfolio piece, "Data Analysis Report on Dogs' Height and Weight," for Dr. Wiernik's Programming with Data Course. 
+Hello! This is the repository for my third portfolio piece, "Data Analysis Report on Drug Use by Age," for Dr. Wiernik's Programming with Data Course. 
 
 ## Data Source: The dataset I will be using for this project is "drug-use-by-age" from the FiveThirtyEight datasets. This data was sourced by the National Survey on Drug Use and Health from the Substance Abuse and Mental Health Data Archive. The data can be found here: https://github.com/fivethirtyeight/data/tree/master/drug-use-by-age 
 
