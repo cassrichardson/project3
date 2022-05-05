@@ -10,8 +10,6 @@ knitr::opts_chunk$set(echo = TRUE)
 
 dogs <- read.csv(here::here("C:/Users/cassr/GitHub/project3/data/AKC_Breed_Info.csv"))
 
-drugs <- read.csv(here::here("C:/Users/cassr/GitHub/project3/data/drug-use-by-age.csv"))
-
 library(ggplot2)
 library(dplyr)
 library(tidyverse)
@@ -68,6 +66,16 @@ dogs2 <- subset(dogs, height_low_inches != "not found")
 ```
 
 ### Perfect! Now we have 149 observations instead of 150, which means that the breed without height/weight information has been removed. 
+
+### In order to run any analyses, we first need to covert height and weight from character variables to numeric variables: 
+
+```{r numeric}
+sapply(dogs2, class)
+
+dogs2$height_low_inches <- as.numeric(dogs2$height_low_inches)
+
+sapply(dogs2, class)
+```
 
 ### Now, I want to combine the low and high values for weight and height to create "height_median_inches" and "weight_median_lbs"
 
