@@ -8,106 +8,152 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-dogs <- read.csv(here::here("C:/Users/cassr/GitHub/project3/data/AKC_Breed_Info.csv"))
+drugs <- read.csv(here::here("C:/Users/cassr/GitHub/project3/data/drug-use-by-age.csv"))
 
 library(ggplot2)
 library(dplyr)
 library(tidyverse)
+library(ggrepel)
 ```
 
 
-# **Cassandra Richardson's Portfolio Piece #3 - Data Analysis Report on Dogs**
+# **Cassandra Richardson's Portfolio Piece #3 - Data Analysis Report on Common Drug Use by Age**
 
 
 # Step 1: Finding a dataset.
 
-### The dataset I will be using for this project is "AKC_Breed_Info." This data came from data.world, was published by "len fishman" and the link to the data is: https://data.world/len/dog-canine-breed-size-akc 
+### The dataset I will be using for this project is "drug-use-by-age" from the FiveThirtyEight datasets. This data was sourced by the National Survey on Drug Use and Health from the Substance Abuse and Mental Health Data Archive. The data can be found here: https://github.com/fivethirtyeight/data/tree/master/drug-use-by-age 
 
-### Dataset description: "This dataset include breed size data for dogs from the American Kennel Club (AKC)."
-
-### For this data analysis project, I will be exploring the relationships between average height and weight of various dog breeds. 
+### Dataset description: This dataset covers usage of 13 different drugs across 17 age groups. For each drug, there is information about the "use," which is the percentage of those in an age group that have used that drug in the last 12 months, and "frequency," which is the median number of times a user in that age group used that drug in the past 12 months. 
 
 
-# Step 2: Before we begin any analyses, let's examine what this dataset includes:
+# Step 2: Develop a research plan.
+
+### For this data analysis report, I want to examine the usage of three drugs: alcohol, marijuana, and hallucinogens. My rationale for choosing these drugs is that I expect the perceptions of each drug to vary across age. Alcohol is the most common drug in the US, and views on marijuana and hallucinogens have been changing in recent years as their therapeutic benefits are being recognized, with laws reflecting this through their legalization or decriminalization. 
+
+### With these three variables, I want to examine trends in both use and frequency across age groups. 
+
+### Hypotheses: 
+1. Alcohol use will not significantly differ with age, but frequency will significantly differ by age. 
+2. Marijuana use will be significantly different by age, but frequency will not significantly differ by age. 
+3. Hallucinogen use will be significantly different by age, but frequency will not signficantly differ by age. 
+
+
+# Step 3: Before we begin any analyses, let's examine what this dataset includes:
 
 ```{r exploring dogs}
-View(dogs)
-
-summary(dogs)
+#View(drugs)
+summary(drugs)
 ```
 
 ### The "view()" function opens the full dataset file in a new tab, so we can visually examine what the data looks like. 
 
-### The "summary()" function gives us the min, max, 1st quartile, mean, and 3rd quartile for all quantitative variables. However, it looks like all of these variables are "character" - we will need to change this in our data cleaning. 
+### The "summary()" function gives us the min, max, 1st quartile, mean, and 3rd quartile for all quantitative variables. However, it looks like some of our variables are character variables when they should be numeric - we will need to change this in our data cleaning. 
 
 
-# Step 3: Let's explore some more characteristics about the data:
+# Step 4: Let's explore some more characteristics about the data:
 
 ```{r data characteristics}
-glimpse(dogs)
-head(dogs)
-names(dogs)
-missing <- !complete.cases(dogs)
-dogs[missing]
+glimpse(drugs)
+head(drugs)
+names(drugs)
+missing <- !complete.cases(drugs)
+drugs[missing]
 ```
 
-### - glimpse() shows us an overview of the whole dataset. We see that there are 150 rows and 5 columns.
+### - glimpse() shows us an overview of the whole dataset. We see that there are 17 rows and 28 columns.
 ### - head() gives us the first 6 rows of data
-### - names() tells us all of the variable names: "Breed" "height_low_inches" "height_high_inches" "weight_low_lbs" "weight_high_lbs"
+### - names() tells us all of the variable names
 ### - missing <- !complete.cases() creates an object/tibble called "missing" with any missing observations across the entire dataset
-### - dogs[missing] shows us that the "missing" tibble has 0 columns. This means that there was no missing data in this dataset, which makes it easier to work with! However, when I looked at the data through the "View()" function, I noticed there is at least one breed with values of "not found" which will need to be removed. 
+### - drugs[missing] shows us that the "missing" tibble has 0 columns. This means that there was no missing data in this dataset, which makes it easier to work with! However, when I looked at the data through the "View()" function, I noticed there is at least one breed with values of "-" which will need to be removed during data cleaning.
 
-# Step 4: Before we begin our analyses, let's **clean the data**! 
+
+
+# Step 5: Before we begin our analyses, let's **clean the data**! 
 
 ### First, I want to remove the values of "not found":
 
 ```{r removing}
-dogs2 <- subset(dogs, height_low_inches != "not found" )
+drugs_clean <- na_if(drugs, "-")
+#View(drugs_clean)
 ```
 
-### Perfect! Now we have 149 observations instead of 150, which means that the breed without height/weight information has been removed. 
+### Perfect! Looking at the new datset, we see that all values of "-" were replaced with NA. 
 
-### In order to run any analyses, we first need to covert height and weight from character variables to numeric variables: 
+### Although we won't be using all drugs in our analyses, let's still fix them for the sake of cleaning the data and making it easier for future analyses. As such, let's change the character variables to numeric variables: 
 
 ```{r numeric}
-sapply(dogs2, class)
+sapply(drugs_clean, class)
 
-dogs2$height_low_inches <- as.numeric(dogs2$height_low_inches) 
-dogs2$height_high_inches <- as.numeric(dogs2$height_high_inches)
-dogs2$weight_low_lbs <- as.numeric(dogs2$weight_low_lbs)
-dogs2$weight_high_lbs <- as.numeric(dogs2$weight_high_lbs)
+drugs_clean$cocaine.frequency <- as.numeric(drugs_clean$cocaine.frequency) 
+drugs_clean$crack.frequency <- as.numeric(drugs_clean$crack.frequency) 
+drugs_clean$heroin.frequency <- as.numeric(drugs_clean$heroin.frequency) 
+drugs_clean$inhalant.frequency <- as.numeric(drugs_clean$inhalant.frequency)
+drugs_clean$oxycontin.frequency <- as.numeric(drugs_clean$oxycontin.frequency) 
+drugs_clean$meth.frequency <- as.numeric(drugs_clean$meth.frequency) 
 
-sapply(dogs2, class)
-```
-
-### Now, I want to combine the low and high values for weight and height to create "height_median_inches" and "weight_median_lbs"
-
-```{r medians}
-dogs_clean <- dogs2 |>
-  group_by(Breed) |>
-  mutate(height_median_inches = median(c(height_low_inches, height_high_inches)), weight_median_lbs = median(c(weight_low_lbs, weight_high_lbs)))
+sapply(drugs_clean, class)
 ```
 
 # Data cleaning is complete! To clean the data, I did the following steps:
 1. Removed missing values
-2. Converted height and weight from character variables to numeric variables
-3. Created two new columns for the median height and weight for each breed of dog 
+2. Converted character variables to numeric variables
 
-# Step 5: Run descriptive statistics  
 
-```{r descriptives}
-dogs_clean |>
-  mean()
+# Step 8: Now let's visualize our data using scatterplots.
+
+```{r alcohol scatterplot}
+ggplot(drugs2) +
+  aes(x = alcohol.use,
+      y = alcohol.frequency,
+      fill = age, 
+      color = age) +
+  geom_jitter(alpha = .6) +
+  labs(
+    title = "Alcohol Use by Age in Past 12 Months",
+    x = "Percentage in Age Group that Used Alcohol",
+    y = "Median # Times Used Alcohol") +
+  geom_text_repel(aes(label = age),
+                  box.padding = .5,
+                  direction = "y",
+                  size = 2.5,
+                  max.overlaps = Inf)
 ```
 
+```{r marijuana scatterplot}
+ggplot(drugs2) +
+  aes(x = marijuana.use,
+      y = marijuana.frequency,
+      fill = age, 
+      color = age) +
+  geom_jitter(alpha = .6) +
+  labs(
+    title = "Marijuana Use by Age in Past 12 Months",
+    x = "Percentage in Age Group that Used Marijuana",
+    y = "Median # Times Used Marijuana") +
+  geom_text_repel(aes(label = age),
+                  box.padding = .5,
+                  direction = "y",
+                  size = 2.5,
+                  max.overlaps = Inf)
+```
 
-# Step 8: Now let's visualize our data using a scatterplot.
-
-```{r scatterplot}
-ggplot(dogs_clean) +
-  aes(x = height_median_inches,
-      y = weight_median_lbs) +
-  geom_point()
+```{r hallucinogen scatterplot}
+ggplot(drugs2) +
+  aes(x = hallucinogen.use,
+      y = hallucinogen.frequency,
+      fill = age, 
+      color = age) +
+  geom_jitter(alpha = .6) +
+  labs(
+    title = "Hallucinogen Use by Age in Past 12 Months",
+    x = "Percentage in Age Group that Used Hallucinogens",
+    y = "Median # Times Used Hallucinogens") +
+  geom_text_repel(aes(label = age),
+                  box.padding = .5,
+                  direction = "y",
+                  size = 2.5,
+                  max.overlaps = Inf)
 ```
 
 # Step 9: Let's perform the Chi-square test of independence to see if there is a relationship between star rating and route difficulty:
