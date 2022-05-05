@@ -14,6 +14,7 @@ library(ggplot2)
 library(dplyr)
 library(tidyverse)
 library(ggrepel)
+library(ggpubr)
 ```
 
 
@@ -108,7 +109,18 @@ drugs_cleaner <- subset(drugs_clean, select=c(age, n, alcohol.use, alcohol.frequ
 
 
 
-# Step 6: Now let's visualize our data using scatterplots.
+
+# Step 6: Now that we have clean data, I want to get mean values for our variables of interest, regardless of age: 
+```{r descriptives}
+remove_age <- subset(drugs_cleaner, select = -c(age, n))
+
+mean_drugs <- sapply(remove_age, mean, na.rm = T)
+
+print(mean_drugs)
+```
+
+
+# Step 7: Now let's visualize our data using scatterplots.
 
 ```{r alcohol scatterplot}
 ggplot(drugs_cleaner) +
@@ -165,8 +177,7 @@ ggplot(drugs_cleaner) +
 ```
 
 
-
-# Step 7: Let's perform the Chi-square test of independence to see if there are the relationships between drug use and age, and drug frequency and age, per my hypotheses:
+# Step 8: Let's perform the Chi-square test of independence to see if there are the relationships between drug use and age, and drug frequency and age, per my hypotheses:
 
 ```{r alcohol use and age correlation}
 alc_use_chisq <- chisq.test(drugs_cleaner$alcohol.use, drugs_cleaner$age)
@@ -204,9 +215,9 @@ hallu_freq_chisq <- chisq.test(drugs_cleaner$hallucinogen.frequency, drugs_clean
 hallu_freq_chisq
 ```
 
-### Unfortunately, none of our chi-squares tests were signficant. This may be due to the way the age groups were coded, or an error in the test I used.
+### Unfortunately, none of our chi-squares tests were signficant (*p* > .05). This may be due to the way the age groups were coded, or an error in the test I used.
 
-# Step 8: To explore if the lack of significance was due to the coding of age groups, or if the relationship only exists among those 12-21 years old, let's filter the data to that age range and re-run our tests. 
+# Step 9: To explore if the lack of significance was due to the coding of age groups, or if the relationship only exists among those 12-21 years old, let's filter the data to that age range and re-run our tests. 
 
 ```{r subset to only those under 21}
 drugs_young <- subset(drugs_cleaner, age <= "21")
@@ -218,105 +229,70 @@ alc_use_chisq_y <- chisq.test(drugs_young$alcohol.use, drugs_young$age)
 alc_use_chisq_y
 ```
 
-```{r alcohol frequency and age correlation}
+```{r alcohol frequency and young age correlation}
 alc_freq_chisq_y <- chisq.test(drugs_young$alcohol.frequency, drugs_young$age)
 
 alc_freq_chisq_y
 ```
 
-```{r marijuana use and age correlation}
+```{r marijuana use and young age correlation}
 marij_use_chisq_y <- chisq.test(drugs_young$marijuana.use, drugs_young$age)
 
 marij_use_chisq_y
 ```
 
-```{r marijuana frequency and age correlation}
-marij_freq_chisq <- chisq.test(drugs_cleaner$marijuana.frequency, drugs_cleaner$age)
+```{r marijuana frequency and young age correlation}
+marij_freq_chisq_y <- chisq.test(drugs_young$marijuana.frequency, drugs_young$age)
 
-marij_freq_chisq
+marij_freq_chisq_y
 ```
 
-```{r hallucinogen use and age correlation}
-hallu_use_chisq <- chisq.test(drugs_cleaner$hallucinogen.use, drugs_cleaner$age)
+```{r hallucinogen use and young age correlation}
+hallu_use_chisq_y <- chisq.test(drugs_young$hallucinogen.use, drugs_young$age)
 
-hallu_use_chisq
+hallu_use_chisq_y
 ```
 
-```{r hallucinogen frequency and age correlation}
-hallu_freq_chisq <- chisq.test(drugs_cleaner$hallucinogen.frequency, drugs_cleaner$age)
+```{r hallucinogen frequency and young age correlation}
+hallu_freq_chisq_y <- chisq.test(drugs_young$hallucinogen.frequency, drugs_young$age)
 
-hallu_freq_chisq
+hallu_freq_chisq_y
 ```
 
+### Unfortunately, none of these tests were signficant either (*p* > .05). If I used the correct test, this means that there is not a signficant correlation betwwen age and alcohol, marijuana, or hallucinogen use or frequency. 
+
+#### *Note for Dr. Wiernik: For this correlation test, I chose to use the Chi-square test because I wanted to compare age (categorical variable) to drug use or frequency (numeric variable). I tried running a one-way ANOVA as well, but those tests did not produce any p values, which makes me believe that that test would not work either. I have no idea what other analytical tests I could run, and this assignment is making me realize I need to take more statistics classes.*
 
 
+# Step 10: Back to the drawing board. I'm curious if use (percentage of people who have used a substance in the past 12 months) and frequency (median number of times that substance was used in the past 12 months) are correlated, to provide insight into addiction or dependance on a substance. 
 
+### New hypotheses:
+1. Alcohol use and frequency will be correlated.
+2. Marijuana use and frequency will be correlated. 
+3. Hallucinogen use and frequency will NOT be correlated. 
 
-
-
-
-
-
-```{r alcohol use by age anova}
-alc_use_anova <- aov(alcohol.use ~ age, data = drugs_clean)
-
-anova_output <- summary(alc_use_anova)
-
-print(anova_output)
+```{r alcohol correlations}
+cor.test(drugs_cleaner$alcohol.use,
+         drugs_cleaner$alcohol.frequency,
+         method = "pearson")
 ```
 
-```{r alcohol use by age anova}
-marij_use_anova <- oneway.test(age ~ marijuana.use, data = drugs_clean)
-
-anova_output <- summary(marij_use_anova)
-
-print(anova_output)
+```{r marijuana correlations}
+cor.test(drugs_cleaner$marijuana.use,
+         drugs_cleaner$marijuana.frequency,
+         method = "pearson")
 ```
 
-### This test was not signficant (*p* > .05). There is not a significant correlation between alcohol use and the age groups in this sample. 
-
-```{r alcohol frquency and age correlation}
-alc_use_chisq <- chisq.test(drugs_clean$alcohol.frequency, drugs_clean$age)
-
-alc_use_chisq
+```{r hallucinogen correlations}
+cor.test(drugs_cleaner$hallucinogen.use,
+         drugs_cleaner$hallucinogen.frequency,
+         method = "pearson")
 ```
 
-### Our Chi-square test was signficant at *p* < .001! *X^2* = 1754.2. This means that there is a correlation between a dog's height and weight, regardless of breed, such that dogs that are taller also tend to weigh more. Of course, this intuitively makes sense.  
-
-#### *Note for Dr. Wiernik: For this correlation test, I chose to use the Chi-square test because height and weight are currently categorical variables. Although I am not sure if this is the correct test, I wanted to gain practice in running correlations in R.*
-
-
-# Step 10: Let's conduct a one-way Analysis of Variance (ANOVA) test to see if the is a statistically significant difference in the average star rating between the different difficulties of routes.  
-
-```{r anova}
-anova <- aov(weight_high_lbs ~ height_high_inches, data = dogs2)
-
-anova_output <- summary(anova)
-
-print(anova_output)
-```
-
-### I conducted a one-way ANOVA with route difficultly (NA, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9) as the between-subjects factor. There was sufficient evidence to conclude that route difficulty had an effect on the star rating of the route, *F* (10, 796) = 33.64, *p* < .001. 
-
-#### *Note for Dr. Wiernik: The dataset does not clarify how the scores were measured, so I am not sure if this is between-subjects or within-subjects. For the sake of practice, I chose to interpret the data as between-subjects.*
-
-
-# Step 11: Since there are more than two levels of the IV (route difficulty), we need to run post-hoc tests to see which diets are significantly different from each other. 
-
-```{r post hoc}
-TukeyHSD(anova)
-```
-
-### Post hoc tests using a Tukey's HSD adjustment indicated that V0 routes (beginner routes) (*M* = 3.52, *SD* = 0.53) had signficantly lower star ratings than almost all other routes: V2 (*M* = 3.80, *SD* = 0.50), V3 (*M* = 3.97, *SD* = 0.43), V4 (*M* = 4.21, *SD* = 0.46), V5 (*M* = 4.15, *SD* = 0.47), V6 (*M* = 4.32, *SD* = 0.42), V7 (*M* = 4.33, *SD* = 0.39), V8 (*M* = 4.54, *SD* = 0.43), and V9 (*M* = 4.85, *SD* = 0.21). There was no signficant difference in route star rating between V0 and V1 (*M* = 3.55, *SD* = 0.51). V1 routes had signficantly lower star ratings than V2, V3, V4, V5, V6, V7, V8, and V9. V2 routes had signficantly lower star ratings than V4-V8. V3 routes had signficantly lower star ratings than V4, V6, V7, and V8. All other comparions were not signficantly different. 
+### Finally. We have significant results. Alcohol use and frequency are signficantly correlated (r = .90, p < .001), marijuana use and frequency are signficantly correlated (r = .62, p < .01), and hallucinogen use and frequency are NOT signficantly correlated, although it is trending towards a negative correlation (r = -.43, p = .08). 
 
 
 # **Interpretation of the Findings**
 
-### Based on our analyses, there is a signficant relationship between boulder route difficulty and star rating such that more difficult routes have higher star ratings. This relationship is especially prevalent among the beginner-intermediate routes (V0, V1, V2, and V3), with less differences in star ratings at the most difficult levels of routes. 
-
-### Unfortunately, information about the data is limited, preventing the ability to make clearer interpretations.Primarily, the method of data collection and information about the measures was vague. I am assuming that star rating reflects how much people enjoyed the route for the sake of analyses. 
-
-### If my understanding of the data is correct, then we can infer that people tend to enjoy more difficult routes. Future studies can examine if this relationship still exists when controlling for skill level (i.e., do people still enjoy advanced routes if they are a beginner?). Future studies can also examine what aspects of the route people enjoyed (i.e., location, rock type, hold type, etc.) to aid in developing more enjoyable indoor climbing routes. 
-
-
+### Based on our analyses, there does not seem to be a significant difference in either alcohol, marijuana, or hallucinogen use or frequency by age. This suggests that these common drugs may be used in similar amounts across age groups (*although our plots don't necessarily suggest this?*). However, there is a signficant correlation between the percentage of the population that use alcohol or marijuana within the last 12 months and the median number of times that these substances are used. To me, this suggests that people are not just trying these substances once; instead, they are using them frequently. On the other hand, hallucinogen use and frequency was not signficant, although it was trending towards a negative correlation. This means that although people may try hallucinogens, they don't use them too often. 
 
